@@ -54,10 +54,10 @@ def printHelp():
 ################################################################################
 
 def printValues():
-	print("n = " + str(n))
-	print("d = " + str(d))
-	print("c = " + str(c))
-	print("r = " + str(r))
+	print("length exactly                  n = " + str(n))
+	print("characterset depth              d = " + str(d))
+	print("disallow consecutive repeats of c = " + str(c) + " or more")
+	print("disallow             repeats of r = " + str(r) + " or more")
 	
 ################################################################################
 
@@ -80,8 +80,6 @@ def parseCommandLine(): 	# gets (but doesnt check) the values.
 		printError("You must supply a length. (try --help to see useage.)")
   
 	for arg in sys.argv[1:]:
-		print("arg: '" + arg +"'. Expands to: '" + arg[0:2] + "', '" + arg[2:] + "'")
-		print(type(arg))
 		if    arg == "--help":		# print help
 			printHelp()				# The printHelp() fn terminates the script
 		elif arg[0:2] == "-d":		# set d(epth)
@@ -189,12 +187,12 @@ c = 0		# default consecutive repeat = off
 r = 0		# default             repeat = off			
 
 parseCommandLine()					# parse the values and then sanity check.
-print("Success!!!")					# if we get here, we have validated.!!
 printValues()
 
 candidateCount = 0
 validPasswordCount =0
 checkForPasswords(n, d, c, r, '')
 
+print()
 print('Number of password candidates: ' + str(candidateCount))
 print('Number of valid passwords    : ' + str(validPasswordCount))
