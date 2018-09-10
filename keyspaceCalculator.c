@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
   
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -35,14 +36,25 @@
 #define MAX_R  params.n    // max value is the password length
 #define MIN_R  0           //Dont blacklist based on 'repeated' letters
 
-typedef struct data 
+typedef struct 
 {
   int n;			// length of password
   int d;			// characterspace depth
   int c;			// consectutive repeats filter
   int r;			// repeats filter
-}DATA;
+} DATA;
 
+typedef struct
+{
+  int candidate;    // how many possible passwords
+  int valid;        // how many valid passwords
+} COUNTERS;
+
+typedef struct
+{
+  bool isValid;     // is this password valid?
+  char *message;    // validation message (reason it was passed or failed)
+} VALIDATION
 ////////////////////////////////////////////////////////////////////////////////
   
 void printHelp (void) 
@@ -106,19 +118,32 @@ printError (char *text, DATA params)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void validate(DATA params)		// Checks values are in range (if we got this far)
+DATA validate(DATA params)		// Checks values are in range (if we got this far)
 {
+  char * message;
+  
   if ((params.n < MIN_N) || (params.n > MAX_N))     // n out of range
-    printError("Length must be between %d & %d", MIN_N, MAX_N);
-    
+  {
+    snprintf(message, 100, "Length must be between %d & %d", MIN_N, MAX_N);
+    printError(message, params);
+  }  
   if ((params.d < MIN_D) || (params.d > MAX_D))     // d out of range
-    printError("Character depth must be between %d & %d", MIN_D, MAX_D);
-    
+  {
+    snprintf(message, 100, "Character depth must be between %d & %d", MIN_D, MAX_D);
+    printError(message, params);
+  } 
   if ((params.c < MIN_C) || (params.c > MAX_C))     // c out of range
-    printError("Consecutive repeats must be between %d & %d", MIN_C, MAX_C);
-    
+  {
+    snprintf(message, 100, "Consecutive repeats must be between %d & %d", MIN_C, MAX_C);
+    printError(message, params);
+  } 
   if ((params.r < MIN_R) || (params.r > MAX_R))     // r out of range
-    printError("Repeats must be between %d & %d", MIN_R, MAX_R);
+  {
+    snprintf(message, 100, "Repeats must be between %d & %d", MIN_R, MAX_R);
+    printError(message, params);
+  }
+  
+  return(params);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,8 +166,6 @@ DATA parseCommandLine (int argc, char *argv[])
   int i; 
   for (i = 1; i < argc; i++)
   {
-    printf("Processing :%s:\n", argv[i]);
-    
 	if (strcmp(argv[i], "--help") == 0)     // print help
 	  printHelp ();                         // The printHelp() fn terminates execution...
 	    
@@ -171,12 +194,42 @@ DATA parseCommandLine (int argc, char *argv[])
   }
  
   printValues(params);
-  validate(params);        // sanity check values
+  return(validate(params));   // sanity check values & return
 }
  
 ////////////////////////////////////////////////////////////////////////////////
 
-
+COUNTERS checkForPasswords(COUNTERS counters, DATA params, char *password)
+{
+    char base = 'A';
+    VALIDATION checkResult;
+	
+	if (params.n == 0)			# nothing to add, so we validate the password here
+	{
+		counters.candidate += 1;
+		checkResult.isValid = true;
+		checkResult.message = "No filter failures";
+		
+		if c > 0 or r > 0 :		#then we must validate
+			????? = validatePassword(c, r, password)
+			
+		if valid:
+			validPasswordCount += 1
+			
+		#print(password + ": " + str(valid) + " - " + reason)
+											#you REALLY dont want to print each
+											#possible password unless you are
+											#debugging. For n=4, d=26, (456976 passwords)
+											#this changes execution time from 0.4 seconds
+											#to 26 seconds on a 49 row high cmd prompt
+											#or 17 seconds on an 8 row high cmd prompt
+											#on windows10 with a core i7-7700.
+	} else
+	{
+		for letter in range(d):	# recursively add the next letter
+			checkForPasswords(n-1, d, c, r, password + chr(letter + base))
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
   
@@ -194,6 +247,12 @@ main (int argc, char *argv[])
   //printHelp();
   //printValues(my_params);
   //printError(text, my_params);
+  
+  COUNTERS counters;
+  counters->valid     = 0;
+  counters->candidate = 0;
+ 
+  counters = checkForPasswords(counters, params, '');
   
   return 0;
 }
